@@ -19,3 +19,4 @@ frontend/.env.local
 .vscode/
 .idea/
 .ruff_cache/
+dump.rdb
