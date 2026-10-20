@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
@@ -56,6 +57,7 @@ class PublicDashboardView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "public_dashboard"
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request, token):
         share = DashboardShare.objects.select_related("user").filter(token=token).first()
         if share is None or not share.is_active:

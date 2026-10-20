@@ -4,6 +4,7 @@ import uuid
 
 from botocore.exceptions import ClientError
 from django.db import IntegrityError
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -40,7 +41,7 @@ def _check_document_limit(user):
 class UploadUrlView(APIView):
     permission_classes = [IsUnverifiedInvestor]
 
-    @extend_schema(request=UploadUrlSerializer)
+    @extend_schema(request=UploadUrlSerializer, responses=OpenApiTypes.OBJECT)
     def post(self, request):
         s = UploadUrlSerializer(data=request.data)
         s.is_valid(raise_exception=True)
@@ -94,6 +95,7 @@ class RegisterDocumentView(APIView):
 class MyVerificationView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         u = request.user
         docs = u.verification_documents.all() if u.role == Role.INVESTOR else []

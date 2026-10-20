@@ -46,7 +46,9 @@ def test_post_validation(verified, other_verified):
     assert c.post("/api/posts", {"body": ""}, format="json").status_code == 400
     assert c.post("/api/posts", {"body": "x" * 2001}, format="json").status_code == 400
     assert c.post("/api/posts", {"body": "a", "survey_id": draft["id"]}, format="json").status_code == 400
-    assert c.post("/api/posts", {"body": "a", "dashboard_share_id": others_share["id"]}, format="json").status_code == 400
+    assert (
+        c.post("/api/posts", {"body": "a", "dashboard_share_id": others_share["id"]}, format="json").status_code == 400
+    )
 
 
 def test_feed_newest_first_and_author_filter(verified, other_verified):
@@ -86,7 +88,9 @@ def test_admin_can_do_everything_an_investor_can(admin_user):
     assert c.get("/api/me/dashboard").status_code == 200
 
 
-def test_deleting_investor_cascades_everything(verified, other_verified, admin_user, django_capture_on_commit_callbacks):
+def test_deleting_investor_cascades_everything(
+    verified, other_verified, admin_user, django_capture_on_commit_callbacks
+):
     c = client_for(verified)
     s = create_survey(c)
     other = create_survey(client_for(other_verified))

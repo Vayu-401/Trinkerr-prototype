@@ -32,9 +32,7 @@ class SurveyViewSet(viewsets.GenericViewSet):
         qs = Survey.objects.all() if qs is None else qs
         return qs.select_related("creator").annotate(
             question_count=Count("questions", distinct=True),
-            has_responded=Exists(
-                SurveyResponse.objects.filter(survey=OuterRef("pk"), user=self.request.user)
-            ),
+            has_responded=Exists(SurveyResponse.objects.filter(survey=OuterRef("pk"), user=self.request.user)),
         )
 
     def get_permissions(self):
@@ -140,9 +138,9 @@ class SurveyViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=["get"])
     def results(self, request, pk=None):
         survey = self.get_object(Survey.objects.prefetch_related("questions__options"))
-        allowed = self._is_owner_or_admin(survey) or SurveyResponse.objects.filter(
-            survey=survey, user=request.user
-        ).exists()
+        allowed = (
+            self._is_owner_or_admin(survey) or SurveyResponse.objects.filter(survey=survey, user=request.user).exists()
+        )
         if not allowed:
             raise PermissionDenied("Answer this survey first to see how other investors voted.")
         return DRFResponse(build_results(survey))

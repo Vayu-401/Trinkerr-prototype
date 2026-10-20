@@ -43,9 +43,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=12, choices=VerificationStatus.choices, default=VerificationStatus.UNVERIFIED
     )
     verification_note = models.TextField(blank=True)  # admin's rejection reason
-    verified_by = models.ForeignKey(
-        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
-    )
+    verified_by = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
     verified_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

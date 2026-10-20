@@ -1,6 +1,7 @@
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import generics
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -48,6 +49,7 @@ class AdminInvestorListView(generics.ListAPIView):
 class AdminInvestorDocumentsView(APIView):
     permission_classes = [IsAdminRole]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request, pk):
         user = get_object_or_404(investors_qs(), pk=pk)
         docs = []

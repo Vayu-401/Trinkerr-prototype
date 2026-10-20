@@ -13,9 +13,12 @@ class PostCreateSerializer(serializers.Serializer):
 
     def validate(self, data):
         user = self.context["request"].user
-        if data.get("survey_id") and not Survey.objects.filter(
-            id=data["survey_id"], status__in=[SurveyStatus.PUBLISHED, SurveyStatus.CLOSED]
-        ).exists():
+        if (
+            data.get("survey_id")
+            and not Survey.objects.filter(
+                id=data["survey_id"], status__in=[SurveyStatus.PUBLISHED, SurveyStatus.CLOSED]
+            ).exists()
+        ):
             raise serializers.ValidationError({"survey_id": "Survey not found"})
         if data.get("dashboard_share_id"):
             share = DashboardShare.objects.filter(id=data["dashboard_share_id"], user=user).first()

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import authenticate
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -54,7 +55,7 @@ class AuthBaseView(APIView):
 
 
 class RegisterView(AuthBaseView):
-    @extend_schema(request=RegisterSerializer)
+    @extend_schema(request=RegisterSerializer, responses=OpenApiTypes.OBJECT)
     def post(self, request):
         s = RegisterSerializer(data=request.data)
         s.is_valid(raise_exception=True)
@@ -63,7 +64,7 @@ class RegisterView(AuthBaseView):
 
 
 class LoginView(AuthBaseView):
-    @extend_schema(request=LoginSerializer)
+    @extend_schema(request=LoginSerializer, responses=OpenApiTypes.OBJECT)
     def post(self, request):
         email = str(request.data.get("email", "")).lower()
         user = authenticate(request, email=email, password=request.data.get("password", ""))
@@ -76,7 +77,7 @@ class LoginView(AuthBaseView):
 class RefreshView(AuthBaseView):
     throttle_scope = "auth_refresh"
 
-    @extend_schema(request=None)
+    @extend_schema(request=None, responses=OpenApiTypes.OBJECT)
     def post(self, request):
         raw = request.COOKIES.get(settings.AUTH_COOKIE_NAME)
         if not raw:

@@ -61,15 +61,12 @@ def build_dashboard(user, *, include_history: bool):
         "owner_name": user.name,
         "surveys_created_count": Survey.objects.filter(creator=user).exclude(status=SurveyStatus.DRAFT).count(),
         "surveys_participated_count": Response.objects.filter(user=user).count(),
-        "participation_timeline": [
-            {"month": r["month"].date().isoformat(), "count": r["n"]} for r in timeline
-        ],
+        "participation_timeline": [{"month": r["month"].date().isoformat(), "count": r["n"]} for r in timeline],
         "created_surveys": [build_results(s) for s in created],  # ~3 queries per survey; fine for <= 10
     }
     if include_history:
         recent = Response.objects.filter(user=user).select_related("survey").order_by("-submitted_at")[:20]
         data["history"] = [
-            {"survey_id": str(r.survey_id), "title": r.survey.title, "submitted_at": r.submitted_at}
-            for r in recent
+            {"survey_id": str(r.survey_id), "title": r.survey.title, "submitted_at": r.submitted_at} for r in recent
         ]
     return data

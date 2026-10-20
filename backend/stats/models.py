@@ -4,9 +4,7 @@ from django.db import models
 class SurveyStats(models.Model):
     """Written only by the Celery worker. Views read it, never write it."""
 
-    survey = models.OneToOneField(
-        "surveys.Survey", on_delete=models.CASCADE, primary_key=True, related_name="stats"
-    )
+    survey = models.OneToOneField("surveys.Survey", on_delete=models.CASCADE, primary_key=True, related_name="stats")
     participant_count = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 

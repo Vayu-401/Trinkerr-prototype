@@ -19,7 +19,7 @@ def answers_for(data, picks):
     """picks: list of option-index lists, one per question."""
     return [
         {"question_id": q["id"], "option_ids": [q["options"][i]["id"] for i in idx]}
-        for q, idx in zip(data["questions"], picks)
+        for q, idx in zip(data["questions"], picks, strict=True)
     ]
 
 
@@ -64,7 +64,11 @@ def test_submit_validation(verified, other_verified, mutate):
         "single_with_two": [good[0], {"question_id": q1["id"], "option_ids": [o["id"] for o in q1["options"][:2]]}],
         "duplicate_question": [good[0], good[0], good[1]],
         "duplicate_option": [{"question_id": q0["id"], "option_ids": [q0["options"][0]["id"]] * 2}, good[1]],
-        "unknown_question": [good[0], good[1], {"question_id": "00000000-0000-0000-0000-000000000000", "option_ids": [q0["options"][0]["id"]]}],
+        "unknown_question": [
+            good[0],
+            good[1],
+            {"question_id": "00000000-0000-0000-0000-000000000000", "option_ids": [q0["options"][0]["id"]]},
+        ],
     }[mutate]
     r = client_for(other_verified).post(f"/api/surveys/{data['id']}/responses", {"answers": bad}, format="json")
     assert r.status_code == 400, r.data
@@ -78,14 +82,26 @@ def test_cannot_answer_draft_or_closed(verified, other_verified):
     closed = create_survey(owner)
     owner.patch(f"/api/surveys/{closed['id']}/close")
     c = client_for(other_verified)
-    assert c.post(f"/api/surveys/{draft['id']}/responses", {"answers": answers_for(draft, [[0], [0]])}, format="json").status_code == 404
-    assert c.post(f"/api/surveys/{closed['id']}/responses", {"answers": answers_for(closed, [[0], [0]])}, format="json").status_code == 400
+    assert (
+        c.post(
+            f"/api/surveys/{draft['id']}/responses", {"answers": answers_for(draft, [[0], [0]])}, format="json"
+        ).status_code
+        == 404
+    )
+    assert (
+        c.post(
+            f"/api/surveys/{closed['id']}/responses", {"answers": answers_for(closed, [[0], [0]])}, format="json"
+        ).status_code
+        == 400
+    )
 
 
 @pytest.mark.django_db
 def test_unverified_cannot_submit(verified, investor):
     data = create_survey(client_for(verified))
-    r = client_for(investor).post(f"/api/surveys/{data['id']}/responses", {"answers": answers_for(data, [[0], [0]])}, format="json")
+    r = client_for(investor).post(
+        f"/api/surveys/{data['id']}/responses", {"answers": answers_for(data, [[0], [0]])}, format="json"
+    )
     assert r.status_code == 403
 
 
@@ -99,7 +115,7 @@ def make_responses(survey, picks_list):
         user = VerifiedInvestorFactory()
         answers = [
             {"question_id": q.id, "option_ids": [list(q.options.all())[i].id for i in idx]}
-            for q, idx in zip(data_q, picks)
+            for q, idx in zip(data_q, picks, strict=True)
         ]
         submit_response(survey=survey, user=user, answers=answers)
 
@@ -161,9 +177,7 @@ def test_locked_batch_is_skipped_by_second_worker(survey_obj):
             connection.close()
 
     with transaction.atomic():  # worker A holds the row locks
-        locked = list(
-            Response.objects.select_for_update().filter(survey=survey_obj).values_list("id", flat=True)
-        )
+        locked = list(Response.objects.select_for_update().filter(survey=survey_obj).values_list("id", flat=True))
         assert len(locked) == 2
         t = threading.Thread(target=other_worker)
         t.start()

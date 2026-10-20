@@ -39,10 +39,7 @@ def _aggregate_batch(survey_id) -> int:
         if not ids:
             return 0
         counts = (
-            ResponseAnswer.objects.filter(response_id__in=ids)
-            .values("option_id")
-            .annotate(n=Count("id"))
-            .order_by()
+            ResponseAnswer.objects.filter(response_id__in=ids).values("option_id").annotate(n=Count("id")).order_by()
         )
         with connection.cursor() as cur:
             cur.executemany(OPTION_UPSERT, [(r["option_id"], survey_id, r["n"]) for r in counts])

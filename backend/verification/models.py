@@ -14,9 +14,7 @@ class DocType(models.TextChoices):
 
 class VerificationDocument(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="verification_documents"
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="verification_documents")
     doc_type = models.CharField(max_length=50, choices=DocType.choices)
     storage_key = models.CharField(max_length=300, unique=True)  # object key in the bucket
     original_filename = models.CharField(max_length=255)

@@ -18,3 +18,4 @@ frontend/.env.local
 .DS_Store
 .vscode/
 .idea/
+.ruff_cache/
