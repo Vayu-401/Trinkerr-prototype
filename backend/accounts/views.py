@@ -74,6 +74,8 @@ class LoginView(AuthBaseView):
 
 
 class RefreshView(AuthBaseView):
+    throttle_scope = "auth_refresh"
+
     @extend_schema(request=None)
     def post(self, request):
         raw = request.COOKIES.get(settings.AUTH_COOKIE_NAME)
@@ -121,7 +123,11 @@ class MeView(APIView):
             return Response({"detail": "Admin accounts cannot be deleted here"}, status=403)
         if not request.user.check_password(request.data.get("password", "")):
             return Response({"detail": "Incorrect password"}, status=400)
-        request.user.delete()
+        from core import storage
+
+        keys = list(request.user.verification_documents.values_list("storage_key", flat=True))
+        request.user.delete()  # cascades to surveys, responses, posts and shares
+        storage.delete_objects(keys)
         resp = Response(status=204)
         _clear_refresh_cookie(resp)
         return resp

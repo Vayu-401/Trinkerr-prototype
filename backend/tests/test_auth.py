@@ -76,3 +76,8 @@ def test_admin_cannot_delete_self(admin_user):
     c = client_for(admin_user)
     assert c.delete("/api/users/me", {"password": PASSWORD}, format="json").status_code == 403
     assert User.objects.filter(id=admin_user.id, role=Role.ADMIN).exists()
+
+
+def test_login_is_throttled(api, investor):
+    codes = [api.post("/api/auth/login", {"email": investor.email, "password": "x"}).status_code for _ in range(11)]
+    assert codes[:10] == [401] * 10 and codes[10] == 429

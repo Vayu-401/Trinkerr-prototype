@@ -93,7 +93,8 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "60/min",
         "user": "300/min",
-        "auth": "10/min",  # login / register / refresh (scope "auth")
+        "auth": "10/min",  # login / register (scope "auth")
+        "auth_refresh": "60/min",  # every page load refreshes, so this needs more headroom
         "public_dashboard": "30/min",  # shared dashboard endpoint
     },
 }
