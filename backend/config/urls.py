@@ -10,6 +10,7 @@ api_patterns = [
     path("users/", include(users_urlpatterns)),
     path("verification/", include(verification_urlpatterns)),
     path("admin/", include(admin_urlpatterns)),
+    path("", include("surveys.urls")),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
 ]

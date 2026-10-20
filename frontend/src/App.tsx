@@ -3,6 +3,7 @@ import { GuestOnly, RequireAdmin, RequireAuth, RequireVerified } from "./auth/gu
 import Layout, { PageHeader } from "./components/Layout";
 import { AdminInvestorDetailPage, AdminInvestorsPage } from "./pages/AdminPages";
 import { LoginPage, RegisterPage } from "./pages/AuthPages";
+import { EditSurveyPage, MySurveysPage, NewSurveyPage, SurveyListPage } from "./pages/SurveyPages";
 import VerificationPage from "./pages/VerificationPage";
 
 function ComingSoon({ title }: { title: string }) {
@@ -18,6 +19,12 @@ export default function App() {
       <Route element={<RequireAuth><Layout /></RequireAuth>}>
         <Route path="/verification" element={<VerificationPage />} />
         <Route path="/" element={<RequireVerified><ComingSoon title="Feed" /></RequireVerified>} />
+        <Route path="/surveys" element={<RequireVerified><SurveyListPage /></RequireVerified>} />
+        <Route path="/surveys/new" element={<RequireVerified><NewSurveyPage /></RequireVerified>} />
+        <Route path="/surveys/:id" element={<RequireVerified><ComingSoon title="Take survey" /></RequireVerified>} />
+        <Route path="/surveys/:id/edit" element={<RequireVerified><EditSurveyPage /></RequireVerified>} />
+        <Route path="/surveys/:id/results" element={<RequireVerified><ComingSoon title="Results" /></RequireVerified>} />
+        <Route path="/my/surveys" element={<RequireVerified><MySurveysPage /></RequireVerified>} />
         <Route path="/admin/investors" element={<RequireAdmin><AdminInvestorsPage /></RequireAdmin>} />
         <Route path="/admin/investors/:id" element={<RequireAdmin><AdminInvestorDetailPage /></RequireAdmin>} />
       </Route>

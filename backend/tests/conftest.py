@@ -10,6 +10,7 @@ PASSWORD = "Str0ngPass!word"
 
 @pytest.fixture(autouse=True)
 def _test_settings(settings):
+    settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]  # fast tests
     settings.CELERY_TASK_ALWAYS_EAGER = True
     settings.CELERY_TASK_EAGER_PROPAGATES = True
     from config.celery import app
