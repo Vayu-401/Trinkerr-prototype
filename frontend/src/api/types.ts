@@ -84,6 +84,7 @@ export interface OptionResult {
 export interface SurveyResults {
   survey_id: string;
   title: string;
+  status?: SurveyStatus;
   participant_count: number;
   pending_responses: number;
   stats_updated_at: string | null;

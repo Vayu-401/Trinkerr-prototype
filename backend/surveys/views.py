@@ -4,13 +4,16 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response as DRFResponse
 
 from accounts.models import Role
 from core.exceptions import Conflict
 from core.permissions import IsOwnerOrAdmin, IsVerifiedOrAdmin
+from stats.services import build_results
 from submissions.models import Response as SurveyResponse
+from submissions.serializers import SubmitResponseSerializer
+from submissions.services import submit_response
 
 from .models import Survey, SurveyStatus
 from .serializers import SurveyDetailSerializer, SurveyListSerializer, SurveyWriteSerializer
@@ -123,3 +126,23 @@ class SurveyViewSet(viewsets.GenericViewSet):
         survey = self.get_object()  # runs object permissions
         survey.delete()
         return DRFResponse(status=204)
+
+    @extend_schema(request=SubmitResponseSerializer, responses={201: None})
+    @action(detail=True, methods=["post"], url_path="responses")
+    def submit(self, request, pk=None):
+        survey = self.get_object()
+        s = SubmitResponseSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        response = submit_response(survey=survey, user=request.user, answers=s.validated_data["answers"])
+        # No statistics here: they are eventually consistent and computed by the worker.
+        return DRFResponse({"id": str(response.id), "submitted_at": response.submitted_at}, status=201)
+
+    @action(detail=True, methods=["get"])
+    def results(self, request, pk=None):
+        survey = self.get_object(Survey.objects.prefetch_related("questions__options"))
+        allowed = self._is_owner_or_admin(survey) or SurveyResponse.objects.filter(
+            survey=survey, user=request.user
+        ).exists()
+        if not allowed:
+            raise PermissionDenied("Answer this survey first to see how other investors voted.")
+        return DRFResponse(build_results(survey))
