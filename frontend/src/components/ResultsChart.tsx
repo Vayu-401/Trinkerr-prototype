@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Bar, BarChart, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { OptionResult } from "../api/types";
 
@@ -5,17 +6,29 @@ const MARIGOLD = "#E3A72F";
 const TRACK = "#E6ECEE";
 const FONT = '"Schibsted Grotesk", system-ui, sans-serif';
 
+function useNarrow(breakpoint = 560) {
+  const [narrow, setNarrow] = useState(() => typeof window !== "undefined" && window.innerWidth < breakpoint);
+  useEffect(() => {
+    const onResize = () => setNarrow(window.innerWidth < breakpoint);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpoint]);
+  return narrow;
+}
+
 export function ResultsChart({ options }: { options: OptionResult[] }) {
-  const data = options.map((o) => ({ ...o, label: o.text.length > 28 ? `${o.text.slice(0, 27)}…` : o.text }));
+  const narrow = useNarrow();
+  const max = narrow ? 14 : 28;
+  const data = options.map((o) => ({ ...o, label: o.text.length > max ? `${o.text.slice(0, max - 1)}…` : o.text }));
   return (
     <ResponsiveContainer width="100%" height={options.length * 46 + 16}>
-      <BarChart data={data} layout="vertical" margin={{ left: 8, right: 56, top: 4, bottom: 4 }} barCategoryGap={10}>
+      <BarChart data={data} layout="vertical" margin={{ left: 0, right: 52, top: 4, bottom: 4 }} barCategoryGap={10}>
         {/* Bars are measured against 100% of participants, so lengths match the labels. */}
         <XAxis type="number" hide domain={[0, 100]} />
         <YAxis
           type="category"
           dataKey="label"
-          width={150}
+          width={narrow ? 92 : 150}
           tickLine={false}
           axisLine={false}
           tick={{ fill: "#1B2A3A", fontSize: 14, fontFamily: FONT }}
