@@ -3,6 +3,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from accounts.urls import auth_urlpatterns, users_urlpatterns
+from posts.views import PostDeleteView, PostListCreateView
 from sharing.views import MyShareListCreateView, MyShareRevokeView, PublicDashboardView
 from stats.views import MyDashboardView
 from submissions.views import MyResponsesView
@@ -19,6 +20,8 @@ api_patterns = [
     path("me/dashboard/shares", MyShareListCreateView.as_view(), name="me-shares"),
     path("me/dashboard/shares/<uuid:pk>", MyShareRevokeView.as_view(), name="me-share-revoke"),
     path("public/dashboards/<str:token>", PublicDashboardView.as_view(), name="public-dashboard"),
+    path("posts", PostListCreateView.as_view(), name="posts"),
+    path("posts/<uuid:pk>", PostDeleteView.as_view(), name="post-delete"),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
 ]

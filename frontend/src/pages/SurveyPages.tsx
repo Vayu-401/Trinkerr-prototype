@@ -71,7 +71,17 @@ export function SurveyListPage() {
 
 function SurveyRow({ s }: { s: SurveyListItem }) {
   const { user } = useAuth();
+  const toast = useToast();
+  const qc = useQueryClient();
   const own = user?.id === s.creator.id;
+  const remove = useMutation({
+    mutationFn: () => surveysApi.remove(s.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["surveys"] });
+      toast.success("Survey deleted");
+    },
+    onError: (e) => toast.error(e),
+  });
   return (
     <li className="flex flex-wrap items-center justify-between gap-4 py-4">
       <div className="min-w-0 flex-1">
@@ -84,11 +94,22 @@ function SurveyRow({ s }: { s: SurveyListItem }) {
           {s.question_count} {s.question_count === 1 ? "question" : "questions"}, by {own ? "you" : s.creator.name}, {formatDate(s.published_at)}
         </p>
       </div>
-      {s.has_responded || own ? (
-        <Link to={`/surveys/${s.id}/results`} className="btn-secondary">See results</Link>
-      ) : (
-        <Link to={`/surveys/${s.id}`} className="btn-primary">Answer</Link>
-      )}
+      <div className="flex flex-wrap gap-2">
+        {s.has_responded || own ? (
+          <Link to={`/surveys/${s.id}/results`} className="btn-secondary">See results</Link>
+        ) : (
+          <Link to={`/surveys/${s.id}`} className="btn-primary">Answer</Link>
+        )}
+        {user?.role === "admin" && !own && (
+          <button
+            className="btn-danger"
+            disabled={remove.isPending}
+            onClick={() => window.confirm(`Delete "${s.title}" by ${s.creator.name}? Its responses are deleted too.`) && remove.mutate()}
+          >
+            Delete
+          </button>
+        )}
+      </div>
     </li>
   );
 }
